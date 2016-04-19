@@ -16,8 +16,6 @@ SCHEDULER.every '5s', :first_in => 0 do |job|
 	resp = Net::HTTP.get_response(URI.parse(url))
 	obj = JSON.parse(resp.body)
 
-	pp(obj["messages"])
-
 	# Grab first 8 messages
 	if obj["messages"]
 		messages = obj["messages"][0..7]
