@@ -38,9 +38,9 @@ SCHEDULER.every '5s', :first_in => 0 do |job|
 				url = 'https://slack.com/api/users.info?token=' + AUTH_TOKEN + '&user=' + usernameMatch
 				getUser = Net::HTTP.get_response(URI.parse(url)).body
 				user = JSON.parse(getUser)["user"]["name"]
-				# puts "user is " + user
-				text = text.gsub(usernameMatch, user)
-				# puts text
+				puts "user is " + user
+				text = text.gsub(/<@(\w*)>/, user)
+				puts text
 			end
 			message["text"] = text
 		end
