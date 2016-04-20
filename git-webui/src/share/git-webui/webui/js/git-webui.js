@@ -545,7 +545,7 @@ webui.LogView = function(historyView) {
                                 '<header>' +
                                     '<h6></h6>' +
                                     '<span class="log-entry-date">' + moment(self.author.date).format('ddd DD/MM @ h:mm a') + '&nbsp;</span> ' +
-                                    '<span class="badge">' + self.abbrevCommitHash() + '</span>' +
+                                    // '<span class="badge">' + self.abbrevCommitHash() + '</span>' +
                                 '</header>' +
                                 '<p class="list-group-item-text"></p>' +
                              '</a>')[0];

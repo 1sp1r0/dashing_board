@@ -26,8 +26,7 @@ bower install
 grunt 
 
 # To kill these servers: 	pkill -f python 		
-pkill -f 'port 8008'
-pkill -f 'port 8009'
+pkill -f 'port 8008' & pkill -f 'port 8009'
 dist/libexec/git-core/./git-webui --port 8008 --no-browser --repo-root $DASH_ROOT/repos/MyCricket-iOS &
 dist/libexec/git-core/./git-webui --port 8009 --no-browser --repo-root $DASH_ROOT/repos/MyCricket-Android &
 
