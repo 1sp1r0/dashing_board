@@ -3,3 +3,4 @@ history.yml
 
 jobs/.*
 assets/.*
+/repos

@@ -1,0 +1,34 @@
+.widget-iframe {
+  padding: 3px 0px 0px 0px !important;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.iframe1  {
+	height: 100%;
+	width: 100%
+}
+
+.iframe2  {
+	height: 100%;
+	width: 100%
+}
+
+.proj-one-container {
+	position: absolute;	
+	top: 0px;
+	bottom: 50%;
+	left: 0px;
+	right: 0px;
+}
+
+.proj-two-container {
+	position: absolute;	
+	top: 50%;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+}
