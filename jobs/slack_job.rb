@@ -1,52 +1,62 @@
+## NEXT STEPS:
+# - Show horizontal rules for date lines
+# - Show the different channels? #technical, #general, #
 require 'net/http'
 require 'json'
 require 'pp'
+require 'websocket-client-simple' # see https://github.com/shokai/websocket-client-simple
+require './assets/ringbuffer'
+
 
 AUTH_TOKEN = open('assets/.auth_token').read
 
-url = 'https://slack.com/api/channels.history?token=xoxp-32797682641-34096478214-35645111159-bddfd33fb9&channel=C0YPMM9JN&pretty=1'
-resp = Net::HTTP.get_response(URI.parse(url))
+rtm_url = 'https://slack.com/api/rtm.start?token=' + AUTH_TOKEN + '&pretty=1'
+resp = Net::HTTP.get_response(URI.parse(rtm_url))
+rtm_obj = JSON.parse(resp.body)
+ws_url = rtm_obj["url"]
+ws = WebSocket::Client::Simple.connect ws_url
+prev_msg = ""
 
-resp_text = resp.body
+messages = RingBuffer.new(5)
 
-obj = JSON.parse(resp_text)
+def get_user(user_id)
+    url = 'https://slack.com/api/users.info?token=' + AUTH_TOKEN + '&user=' + user_id
+    getUser = Net::HTTP.get_response(URI.parse(url)).body
+    return JSON.parse(getUser)["user"]["name"]
+end
+
+def sanitize_text(text)
+    user_re = /<@(\w*)>/
+    matches = text.scan(user_re)
+    if matches then
+        matches.each do |match|
+            text = text.sub("<@"+match[0]+">", get_user(match[0]))
+        end
+    end
+    return text
+end
 
 # :first_in sets how long it takes before the job is first run. In this case, it is run immediately
 SCHEDULER.every '5s', :first_in => 0 do |job|
-	resp = Net::HTTP.get_response(URI.parse(url))
-	obj = JSON.parse(resp.body)
 
-	# Grab first 8 messages
-	if obj["messages"]
-		messages = obj["messages"][0..7]
-	end
+    ws.on :message do |msg|
+        if msg == prev_msg
+            next
+        else
+            prev_msg = msg
+        end
 
-	# Replace user id's with actual usernames
-	messages.each do |message|
-		# For username display
-		url = 'https://slack.com/api/users.info?token=' + AUTH_TOKEN + '&user=' + message["user"]
-		getUser = Net::HTTP.get_response(URI.parse(url)).body
-		user = JSON.parse(getUser)["user"]["name"]
-		message["user"] = user
+        event = JSON.parse(msg.data)
+        user = get_user(event["user"])
 
-		# For @ mentions
-		text = message["text"]
-		if text.include? "<@"
-			if(text.include? "|")
-				text = text.gsub(/<@.*\|(.*)>/, '\1')
-			else
-				usernameMatch = /<@(\w*)>/.match(text)[1]
-				# puts "usernameMatch is " + usernameMatch
-				url = 'https://slack.com/api/users.info?token=' + AUTH_TOKEN + '&user=' + usernameMatch
-				getUser = Net::HTTP.get_response(URI.parse(url)).body
-				user = JSON.parse(getUser)["user"]["name"]
-				puts "user is " + user
-				text = text.gsub(/<@(\w*)>/, user)
-				puts text
-			end
-			message["text"] = text
-		end
-	end
+        if event["type"] == "message"
+            messages << {"user" => user, "text" => sanitize_text(event["text"])}
+        elsif event["type"] == "user_typing"
+            messages << {"user" => user, "text" => user + " is typing..."}
+        elsif event["type"] == "presence_change"
+            messages << {"user" => user, "text" => user + "'s presence changed to " + event["presence"]}
+        end
+    end
 
-  	send_event('slack', { items: messages })
+    send_event('slack', { items: messages })
 end
