@@ -5,6 +5,7 @@ $background-color:  #12b0c5;
 $value-color:       #fff;
 
 $title-color:       rgba(255, 255, 255, 0.7);
+$channel-color:     rgba(255, 255, 255, 0.9);
 $label-color:       rgba(255, 255, 255, 0.7);
 $moreinfo-color:    rgba(255, 255, 255, 0.7);
 
@@ -34,9 +35,14 @@ $moreinfo-color:    rgba(255, 255, 255, 0.7);
     list-style: none;
   }
 
+  .channel {
+    margin-bottom: 5px;
+    color: $channel-color;
+  }
+
   .label {
     margin-bottom: 5px;
-    display: block;
+    // display: block;
     color: $label-color;
   }
 

@@ -1,6 +1,7 @@
 ## NEXT STEPS:
 # - Show horizontal rules for date lines
-# - Show the different channels? #technical, #general, #
+# - Show the different channels? #technical, #general
+# Change SCHEDULER to realtime?
 require 'net/http'
 require 'json'
 require 'pp'
@@ -25,6 +26,17 @@ def get_user(user_id)
     return JSON.parse(getUser)["user"]["name"]
 end
 
+def get_channel(channel_id)
+    url = 'https://slack.com/api/channels.info?token=' + AUTH_TOKEN + '&channel=' + channel_id
+    getChannel = Net::HTTP.get_response(URI.parse(url)).body
+    if JSON.parse(getChannel)["ok"].to_s == "false"
+        url = 'https://slack.com/api/groups.info?token=' + AUTH_TOKEN + '&channel=' + channel_id
+        getChannel = Net::HTTP.get_response(URI.parse(url)).body
+        return "#"+JSON.parse(getChannel)["group"]["name"]
+    end
+    return "#"+JSON.parse(getChannel)["channel"]["name"]
+end
+
 def sanitize_text(text)
     user_re = /<@(\w*)>/
     matches = text.scan(user_re)
@@ -47,15 +59,20 @@ SCHEDULER.every '5s', :first_in => 0 do |job|
         end
 
         event = JSON.parse(msg.data)
+
         user = get_user(event["user"])
+        channel = get_channel(event["channel"])        
 
         if event["type"] == "message"
-            messages << {"user" => user, "text" => sanitize_text(event["text"])}
+            messages << {"channel" => channel, "user" => user, "text" => sanitize_text(event["text"])}
         elsif event["type"] == "user_typing"
-            messages << {"user" => user, "text" => user + " is typing..."}
+            messages << {"channel" => channel, "user" => user, "text" => user + " is typing..."}
         elsif event["type"] == "presence_change"
-            messages << {"user" => user, "text" => user + "'s presence changed to " + event["presence"]}
+            messages << {"channel" => channel, "user" => user, "text" => user + "'s presence changed to " + event["presence"]}
         end
+
+        puts "messages:\n"
+        pp messages
     end
 
     send_event('slack', { items: messages })
