@@ -68,14 +68,11 @@ SCHEDULER.every '5s', :first_in => 0 do |job|
         event = JSON.parse(msg.data)
 
         user = get_user(event["user"])
-        channel = get_channel(event["channel"])        
+        channel = get_channel(event["channel"])
+        # if channel.to_s == "" then next end
 
         if event["type"] == "message"
             messages << {"channel" => channel, "user" => user, "text" => sanitize_text(event["text"])}
-        elsif event["type"] == "user_typing"
-            messages << {"channel" => channel, "user" => user, "text" => user + " is typing..."}
-        elsif event["type"] == "presence_change"
-            messages << {"channel" => channel, "user" => user, "text" => user + "'s presence changed to " + event["presence"]}
         end
 
         puts "messages:\n"
