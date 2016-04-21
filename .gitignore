@@ -2,4 +2,4 @@
 history.yml
 
 assets/.*
-/repos
+/repos/**.*
