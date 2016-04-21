@@ -1,6 +1,6 @@
 ## NEXT STEPS:
 # - Show horizontal rules for date lines
-# - Show the different channels? #technical, #general
+# - Show the different channels? #technical, #general - alternate color of different channel or assign a color to a channel
 # Change SCHEDULER to realtime?
 require 'net/http'
 require 'json'
@@ -17,6 +17,7 @@ rtm_obj = JSON.parse(resp.body)
 ws_url = rtm_obj["url"]
 ws = WebSocket::Client::Simple.connect ws_url
 prev_msg = ""
+$prev_channel = ""
 
 messages = RingBuffer.new(5)
 
@@ -27,6 +28,12 @@ def get_user(user_id)
 end
 
 def get_channel(channel_id)
+    if $prev_channel == channel_id
+        return ""
+    else 
+        $prev_channel = channel_id
+    end
+
     url = 'https://slack.com/api/channels.info?token=' + AUTH_TOKEN + '&channel=' + channel_id
     getChannel = Net::HTTP.get_response(URI.parse(url)).body
     if JSON.parse(getChannel)["ok"].to_s == "false"
